@@ -19,6 +19,9 @@
     align-items: center;
     user-select: none;
     position: relative;
+    touch-action: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
   }
 
   .bsd {
@@ -221,7 +224,6 @@
     position: relative;
     border: 3px solid #E8A0AE;
     z-index: 5;
-    overflow: hidden;
   }
   .body::before {
     content: '';
@@ -256,7 +258,7 @@
     border: 2px solid #E8C4A0;
     border-radius: 10px;
     top: 15px;
-    z-index: 4;
+    z-index: 50;
   }
   .arm-left {
     left: -15px;
@@ -267,6 +269,7 @@
     right: -15px;
     transform: rotate(-10deg);
     border-radius: 10px 10px 8px 12px;
+    transform-origin: top center;
   }
 
   /* Hand */
@@ -515,6 +518,9 @@
   </div>
 </div>
 
+<!-- Knock crack effect on screen -->
+<div id="knockCrack" style="position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:999;opacity:0;transition:opacity 0.3s;"></div>
+
 <!-- Color palette -->
 <div class="palette">
   <div class="palette-label">🎨 בחרי צבע שיער:</div>
@@ -527,6 +533,7 @@
     </div>
     <button class="btn" onclick="clearHair()">🗑️ נקי הכל</button>
     <button class="btn" onclick="shakeHead()">💃 נענעי!</button>
+    <button class="btn" id="pauseBtn" onclick="togglePause()">⏸️ עצרי</button>
   </div>
 </div>
 
@@ -599,22 +606,48 @@
     colorsRow.appendChild(btn);
   });
 
-  // Add hair strip on scalp click
-  scalp.addEventListener('click', (e) => {
-    e.stopPropagation();
-    addHairStrip(e);
+  // === TAP vs DRAG HANDLING (mobile + desktop) ===
+  let touchStartX2 = 0, touchStartY2 = 0, touchStartTime2 = 0, dragTotal = 0;
+  const TAP_DIST = 12;
+  const TAP_MS = 300;
+
+  // Desktop clicks
+  scalp.addEventListener('click', (e) => { e.stopPropagation(); addHairStrip(e); });
+  document.getElementById('head').addEventListener('click', (e) => {
+    const rect = document.getElementById('head').getBoundingClientRect();
+    if (e.clientY - rect.top < 35) addHairStrip(e);
   });
 
-  // Also allow clicking on top of head
-  document.getElementById('head').addEventListener('click', (e) => {
-    const rect = e.target.getBoundingClientRect();
-    const relY = e.clientY - rect.top;
-    if (relY < 30) {
-      addHairStrip(e);
+  // Mobile taps on scalp
+  scalp.addEventListener('touchstart', (e) => {
+    touchStartX2 = e.touches[0].clientX; touchStartY2 = e.touches[0].clientY;
+    touchStartTime2 = Date.now(); dragTotal = 0;
+  }, { passive: true });
+  scalp.addEventListener('touchend', (e) => {
+    if (dragTotal < TAP_DIST && Date.now() - touchStartTime2 < TAP_MS) {
+      e.preventDefault(); e.stopPropagation();
+      addHairStrip({ clientX: touchStartX2, clientY: touchStartY2 });
+    }
+  });
+
+  // Mobile taps on head top
+  const headTap = document.getElementById('head');
+  headTap.addEventListener('touchstart', (e) => {
+    touchStartX2 = e.touches[0].clientX; touchStartY2 = e.touches[0].clientY;
+    touchStartTime2 = Date.now(); dragTotal = 0;
+  }, { passive: true });
+  headTap.addEventListener('touchend', (e) => {
+    if (dragTotal < TAP_DIST && Date.now() - touchStartTime2 < TAP_MS) {
+      const rect = headTap.getBoundingClientRect();
+      if (touchStartY2 - rect.top < 35) {
+        e.preventDefault();
+        addHairStrip({ clientX: touchStartX2, clientY: touchStartY2 });
+      }
     }
   });
 
   function addHairStrip(e) {
+    lastInteraction = Date.now(); // reset idle timer when playing
     const headEl = document.getElementById('head');
     const headRect = headEl.getBoundingClientRect();
     const headCenterX = headRect.left + headRect.width / 2;
@@ -700,36 +733,42 @@
   // Drag to shake head
   const scene = document.getElementById('scene');
 
-  scene.addEventListener('mousedown', startDrag);
-  scene.addEventListener('touchstart', startDrag, { passive: false });
-
-  function startDrag(e) {
+  scene.addEventListener('mousedown', (e) => {
     isDragging = true;
-    lastX = e.touches ? e.touches[0].clientX : e.clientX;
-    e.preventDefault();
-  }
+    lastX = e.clientX;
+  });
+  scene.addEventListener('touchstart', (e) => {
+    isDragging = true;
+    lastX = e.touches[0].clientX;
+    dragTotal = 0;
+  }, { passive: true });
 
-  document.addEventListener('mousemove', onDrag);
-  document.addEventListener('touchmove', onDrag, { passive: false });
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - lastX;
+    headVelocity = dx * 0.8;
+    headAngle += dx * 0.7;
+    headAngle = Math.max(-50, Math.min(50, headAngle));
+    lastX = e.clientX;
+    updateHead();
+  });
 
-  function onDrag(e) {
+  document.addEventListener('touchmove', (e) => {
     if (!isDragging) return;
     e.preventDefault();
-    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    const x = e.touches[0].clientX;
     const dx = x - lastX;
+    dragTotal += Math.abs(dx);
     headVelocity = dx * 0.8;
     headAngle += dx * 0.7;
     headAngle = Math.max(-50, Math.min(50, headAngle));
     lastX = x;
     updateHead();
-  }
+  }, { passive: false });
 
-  document.addEventListener('mouseup', endDrag);
-  document.addEventListener('touchend', endDrag);
-
-  function endDrag() {
-    isDragging = false;
-  }
+  document.addEventListener('mouseup', () => { isDragging = false; });
+  document.addEventListener('touchend', () => { isDragging = false; });
+  document.addEventListener('touchcancel', () => { isDragging = false; });
 
   // Physics loop
   function animate() {
@@ -815,9 +854,11 @@
   }
 
   function shakeHead() {
+    if (isPaused) return;
     // Auto shake animation
     let shakeTime = 0;
     const shakeInterval = setInterval(() => {
+      if (isPaused) { clearInterval(shakeInterval); return; }
       headVelocity = Math.sin(shakeTime * 0.3) * 15;
       headAngle += headVelocity * 0.3;
       headAngle = Math.max(-35, Math.min(35, headAngle));
@@ -826,6 +867,34 @@
         clearInterval(shakeInterval);
       }
     }, 30);
+  }
+
+  let isPaused = false;
+
+  function togglePause() {
+    isPaused = !isPaused;
+    const btn = document.getElementById('pauseBtn');
+    const dollWrapper = document.getElementById('dollWrapper');
+
+    if (isPaused) {
+      btn.textContent = '▶️ המשיכי';
+      // Stop animation
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+      // Stop idle knocking
+      headVelocity = 0;
+      // Grey out doll slightly
+      dollWrapper.style.filter = 'grayscale(0.3)';
+      dollWrapper.style.transition = 'filter 0.3s';
+    } else {
+      btn.textContent = '⏸️ עצרי';
+      // Resume animation
+      dollWrapper.style.filter = 'none';
+      lastInteraction = Date.now();
+      animate();
+    }
   }
 
   // Start animation loop
@@ -842,6 +911,162 @@
       }, 150);
     });
   }, 3000 + Math.random() * 2000);
+
+  // === IDLE KNOCK FEATURE ===
+  let lastInteraction = Date.now();
+  let isKnocking = false;
+  let idleCheckInterval = null;
+  const IDLE_TIME = 8000; // 8 seconds
+
+  // Audio context for glass knock sound
+  let audioCtx = null;
+  function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+
+  function playGlassKnock() {
+    try {
+      const ctx = getAudioCtx();
+      if (ctx.state === 'suspended') ctx.resume();
+      const now = ctx.currentTime;
+
+      // Soft tap impact
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(1200, now);
+      osc1.frequency.exponentialRampToValueAtTime(600, now + 0.06);
+      gain1.gain.setValueAtTime(0.18, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.1);
+
+      // Gentle glass ring
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(2800, now);
+      osc2.frequency.exponentialRampToValueAtTime(2400, now + 0.25);
+      gain2.gain.setValueAtTime(0.08, now);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(now);
+      osc2.stop(now + 0.3);
+
+      // Soft noise tap
+      const bufferSize = ctx.sampleRate * 0.03;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * 0.5 * (1 - i / bufferSize);
+      }
+      const noise = ctx.createBufferSource();
+      const noiseGain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = 3000;
+      filter.Q.value = 2;
+      noise.buffer = buffer;
+      noiseGain.gain.setValueAtTime(0.2, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+      noise.connect(filter);
+      filter.connect(noiseGain);
+      noiseGain.connect(ctx.destination);
+      noise.start(now);
+    } catch(e) {}
+  }
+
+  function knockScreen() {
+    const crack = document.getElementById('knockCrack');
+    // Stronger flash
+    crack.style.background = 'radial-gradient(circle at 50% 15%, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.2) 30%, transparent 60%)';
+    crack.style.opacity = '1';
+    setTimeout(() => { crack.style.opacity = '0'; }, 120);
+  }
+
+  function doKnockSequence() {
+    if (isKnocking) return;
+    isKnocking = true;
+
+    const dollWrapper = document.getElementById('dollWrapper');
+    const rightArm = document.querySelector('.arm-right');
+    const scene = document.getElementById('scene');
+    const sceneRect = scene.getBoundingClientRect();
+
+    // Step 1: Doll walks toward camera — scales up big so she fills the screen
+    dollWrapper.style.transition = 'transform 0.7s cubic-bezier(0.34, 1.2, 0.64, 1)';
+    dollWrapper.style.transform = 'scale(2.5) translateY(15%)';
+
+    // Step 2: Raise right arm up to knock position
+    setTimeout(() => {
+      rightArm.style.transition = 'transform 0.3s ease-out';
+      rightArm.style.transform = 'rotate(-120deg) translateX(-10px)';
+    }, 600);
+
+    // Step 3: Three knocks — arm swings forward into "screen"
+    const knockTimes = [1000, 1350, 1650];
+    knockTimes.forEach((t) => {
+      setTimeout(() => {
+        // Arm swings forward (knock!)
+        rightArm.style.transition = 'transform 0.06s ease-out';
+        rightArm.style.transform = 'rotate(-90deg) translateX(5px)';
+        playGlassKnock();
+        knockScreen();
+
+        // Gentle screen shake
+        document.body.style.transition = 'none';
+        document.body.style.transform = 'translateY(2px)';
+        setTimeout(() => {
+          document.body.style.transition = 'transform 0.15s';
+          document.body.style.transform = '';
+        }, 50);
+
+        // Arm pulls back for next knock
+        setTimeout(() => {
+          rightArm.style.transition = 'transform 0.12s ease-in';
+          rightArm.style.transform = 'rotate(-120deg) translateX(-10px)';
+        }, 100);
+      }, t);
+    });
+
+    // Step 4: Doll steps back to normal
+    setTimeout(() => {
+      rightArm.style.transition = 'transform 0.4s ease-in-out';
+      rightArm.style.transform = 'rotate(-10deg)';
+
+      dollWrapper.style.transition = 'transform 0.6s ease-in-out';
+      dollWrapper.style.transform = 'scale(1)';
+
+      setTimeout(() => {
+        rightArm.style.transition = '';
+        dollWrapper.style.transition = '';
+        isKnocking = false;
+      }, 600);
+    }, 2100);
+  }
+
+  // Reset idle timer on any interaction
+  function resetIdleTimer() {
+    lastInteraction = Date.now();
+  }
+
+  document.addEventListener('mousedown', resetIdleTimer);
+  document.addEventListener('touchstart', resetIdleTimer);
+  document.addEventListener('mousemove', (e) => { if (isDragging) resetIdleTimer(); });
+  document.addEventListener('touchmove', () => { if (isDragging) resetIdleTimer(); });
+  document.addEventListener('click', resetIdleTimer);
+
+  // Check for idle
+  idleCheckInterval = setInterval(() => {
+    if (Date.now() - lastInteraction > IDLE_TIME && !isKnocking && !isPaused) {
+      doKnockSequence();
+      lastInteraction = Date.now();
+    }
+  }, 1000);
 </script>
 
 </body>
