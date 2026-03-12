@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>בס"ד - בובת שיער צבעונית</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&family=Secular+One&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #FFF5F7;
+    font-family: 'Heebo', sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    user-select: none;
+    position: relative;
+  }
+
+  .bsd {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-family: 'Secular One', sans-serif;
+    font-size: 14px;
+    color: #D4A0A0;
+  }
+
+  .title {
+    font-family: 'Secular One', sans-serif;
+    font-size: clamp(20px, 4vw, 32px);
+    color: #E8788A;
+    margin-top: 30px;
+    text-shadow: 2px 2px 0 #FFD1DC;
+    letter-spacing: 1px;
+  }
+
+  .subtitle {
+    font-size: clamp(12px, 2vw, 16px);
+    color: #C9A0B0;
+    margin-top: 4px;
+    margin-bottom: 10px;
+  }
+
+  .scene {
+    position: relative;
+    width: 100%;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  /* Doll container */
+  .doll-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Head group - this rotates */
+  .head-group {
+    position: relative;
+    transition: transform 0.1s ease-out;
+    cursor: pointer;
+    z-index: 10;
+  }
+
+  /* Scalp / head top where tape goes */
+  .scalp {
+    position: absolute;
+    top: 0px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 110px;
+    height: 40px;
+    z-index: 20;
+    border-radius: 50% 50% 0 0;
+    cursor: pointer;
+  }
+
+  /* The head shape */
+  .head {
+    width: 120px;
+    height: 140px;
+    background: #FFE4C9;
+    border-radius: 55% 55% 45% 45%;
+    position: relative;
+    border: 3px solid #E8C4A0;
+    box-shadow: inset 0 -10px 20px rgba(200, 150, 100, 0.15);
+  }
+
+  /* Doll face */
+  .eye {
+    position: absolute;
+    width: 22px;
+    height: 26px;
+    background: white;
+    border-radius: 50%;
+    top: 45px;
+    border: 2px solid #B08060;
+    overflow: hidden;
+  }
+  .eye-left { left: 22px; }
+  .eye-right { right: 22px; }
+
+  .pupil {
+    width: 12px;
+    height: 14px;
+    background: #4A3020;
+    border-radius: 50%;
+    position: absolute;
+    bottom: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: transform 0.15s ease;
+  }
+  .pupil::after {
+    content: '';
+    width: 4px;
+    height: 4px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    right: 2px;
+  }
+
+  .eyelash {
+    position: absolute;
+    top: -4px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 3px;
+  }
+  .eyelash span {
+    width: 2px;
+    height: 6px;
+    background: #6B4030;
+    border-radius: 1px;
+    display: block;
+  }
+  .eyelash span:nth-child(1) { transform: rotate(-25deg); }
+  .eyelash span:nth-child(2) { transform: rotate(-10deg); height: 7px; }
+  .eyelash span:nth-child(3) { transform: rotate(0deg); height: 8px; }
+  .eyelash span:nth-child(4) { transform: rotate(10deg); height: 7px; }
+  .eyelash span:nth-child(5) { transform: rotate(25deg); }
+
+  .blush {
+    position: absolute;
+    width: 20px;
+    height: 12px;
+    background: rgba(255, 150, 150, 0.35);
+    border-radius: 50%;
+    top: 72px;
+  }
+  .blush-left { left: 14px; }
+  .blush-right { right: 14px; }
+
+  .nose {
+    position: absolute;
+    top: 68px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 10px;
+    border-radius: 50%;
+    border-bottom: 2px solid #D4A880;
+    border-right: 1px solid #D4A88044;
+  }
+
+  .mouth {
+    position: absolute;
+    top: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 22px;
+    height: 10px;
+    border-bottom: 3px solid #E88090;
+    border-radius: 0 0 50% 50%;
+  }
+
+  .eyebrow {
+    position: absolute;
+    top: 38px;
+    width: 20px;
+    height: 3px;
+    background: #9B7050;
+    border-radius: 2px;
+  }
+  .eyebrow-left { left: 23px; transform: rotate(-5deg); }
+  .eyebrow-right { right: 23px; transform: rotate(5deg); }
+
+  /* Ears */
+  .ear {
+    position: absolute;
+    width: 16px;
+    height: 22px;
+    background: #FFE4C9;
+    border-radius: 50%;
+    top: 55px;
+    border: 2px solid #E8C4A0;
+  }
+  .ear-left { left: -8px; }
+  .ear-right { right: -8px; }
+
+  /* Body */
+  .body {
+    width: 100px;
+    height: 120px;
+    background: #FFB6C1;
+    border-radius: 20px 20px 30px 30px;
+    margin-top: -10px;
+    position: relative;
+    border: 3px solid #E8A0AE;
+    z-index: 5;
+    overflow: hidden;
+  }
+  .body::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 30px;
+    border: 3px solid #E8A0AE;
+    border-radius: 50%;
+    background: #FFC8D4;
+  }
+  .body::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 45px;
+    background: #FF9EB0;
+    border-radius: 0 0 27px 27px;
+    border-top: 2px dashed #E8A0AE;
+  }
+
+  /* Arms */
+  .arm {
+    position: absolute;
+    width: 22px;
+    height: 70px;
+    background: #FFE4C9;
+    border: 2px solid #E8C4A0;
+    border-radius: 10px;
+    top: 15px;
+    z-index: 4;
+  }
+  .arm-left {
+    left: -15px;
+    transform: rotate(10deg);
+    border-radius: 10px 10px 12px 8px;
+  }
+  .arm-right {
+    right: -15px;
+    transform: rotate(-10deg);
+    border-radius: 10px 10px 8px 12px;
+  }
+
+  /* Hand */
+  .hand {
+    position: absolute;
+    bottom: -6px;
+    width: 18px;
+    height: 14px;
+    background: #FFE4C9;
+    border: 2px solid #E8C4A0;
+    border-radius: 50%;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* Legs */
+  .legs {
+    display: flex;
+    gap: 8px;
+    margin-top: -5px;
+    z-index: 3;
+  }
+  .leg {
+    width: 24px;
+    height: 50px;
+    background: #FFE4C9;
+    border: 2px solid #E8C4A0;
+    border-radius: 8px 8px 12px 12px;
+  }
+  .shoe {
+    width: 30px;
+    height: 16px;
+    background: #E8788A;
+    border: 2px solid #D06070;
+    border-radius: 8px 12px 6px 6px;
+    margin-top: -3px;
+  }
+  .shoe:first-child { margin-left: -3px; }
+  .shoe:last-child { margin-right: -3px; }
+
+  /* Hair strips */
+  .hair-strip {
+    position: absolute;
+    width: 12px;
+    border-radius: 0 0 6px 6px;
+    transform-origin: top center;
+    z-index: 15;
+    pointer-events: none;
+    will-change: transform;
+  }
+
+  .hair-strip::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 16px;
+    height: 8px;
+    background: rgba(200, 200, 200, 0.7);
+    border-radius: 2px;
+    border: 1px solid rgba(180, 180, 180, 0.5);
+    z-index: 25;
+  }
+
+  /* Color palette */
+  .palette {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-top: 2px solid #FFD1DC;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    z-index: 100;
+  }
+
+  .palette-label {
+    font-family: 'Secular One', sans-serif;
+    font-size: 14px;
+    color: #E8788A;
+  }
+
+  .colors-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .color-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+  }
+  .color-btn:hover {
+    transform: scale(1.15);
+    box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+  }
+  .color-btn.selected {
+    border-color: #333;
+    transform: scale(1.2);
+  }
+
+  .controls-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .btn {
+    font-family: 'Heebo', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 2px solid #E8788A;
+    background: white;
+    color: #E8788A;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn:hover {
+    background: #E8788A;
+    color: white;
+  }
+
+  .length-control {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #C9A0B0;
+  }
+  .length-control input[type="range"] {
+    width: 80px;
+    accent-color: #E8788A;
+  }
+
+  .instructions {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(232, 120, 138, 0.1);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    color: #C9A0B0;
+    white-space: nowrap;
+    animation: fadeInOut 4s ease forwards;
+    z-index: 50;
+  }
+
+  @keyframes fadeInOut {
+    0% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+    15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    75% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* Stars decoration */
+  .star {
+    position: fixed;
+    font-size: 20px;
+    opacity: 0.3;
+    animation: twinkle 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.2; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+  }
+
+  /* Confetti when adding hair */
+  .confetti {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 200;
+  }
+</style>
+</head>
+<body>
+
+<div class="bsd">בס"ד</div>
+<div class="title">✨ בובת השיער הצבעונית ✨</div>
+<div class="subtitle">הדביקי רצועות שיער ונענעי את הראש!</div>
+
+<div class="instructions" id="instructions">👆 לחצי על הקרקפת להדביק שיער, גררי ימינה ושמאלה לנענע</div>
+
+<div class="scene" id="scene">
+  <div class="doll-wrapper" id="dollWrapper">
+    <!-- Head group - rotates -->
+    <div class="head-group" id="headGroup">
+      <div class="scalp" id="scalp"></div>
+      <div class="head" id="head">
+        <div class="ear ear-left"></div>
+        <div class="ear ear-right"></div>
+        <div class="eyebrow eyebrow-left"></div>
+        <div class="eyebrow eyebrow-right"></div>
+        <div class="eye eye-left">
+          <div class="eyelash"><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="pupil" id="pupilLeft"></div>
+        </div>
+        <div class="eye eye-right">
+          <div class="eyelash"><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="pupil" id="pupilRight"></div>
+        </div>
+        <div class="blush blush-left"></div>
+        <div class="blush blush-right"></div>
+        <div class="nose"></div>
+        <div class="mouth" id="mouth"></div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="body">
+      <div class="arm arm-left"><div class="hand"></div></div>
+      <div class="arm arm-right"><div class="hand"></div></div>
+    </div>
+
+    <!-- Legs -->
+    <div class="legs">
+      <div>
+        <div class="leg"></div>
+        <div class="shoe"></div>
+      </div>
+      <div>
+        <div class="leg"></div>
+        <div class="shoe"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Color palette -->
+<div class="palette">
+  <div class="palette-label">🎨 בחרי צבע שיער:</div>
+  <div class="colors-row" id="colorsRow"></div>
+  <div class="controls-row">
+    <div class="length-control">
+      <span>קצר</span>
+      <input type="range" id="lengthSlider" min="40" max="180" value="100">
+      <span>ארוך</span>
+    </div>
+    <button class="btn" onclick="clearHair()">🗑️ נקי הכל</button>
+    <button class="btn" onclick="shakeHead()">💃 נענעי!</button>
+  </div>
+</div>
+
+<!-- Decorative stars -->
+<script>
+  const starPositions = [
+    {x: '10%', y: '15%', d: 0}, {x: '85%', y: '10%', d: 0.5},
+    {x: '5%', y: '60%', d: 1}, {x: '92%', y: '45%', d: 1.5},
+    {x: '15%', y: '80%', d: 2}, {x: '80%', y: '75%', d: 0.3}
+  ];
+  starPositions.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'star';
+    el.textContent = '⭐';
+    el.style.left = s.x;
+    el.style.top = s.y;
+    el.style.animationDelay = s.d + 's';
+    document.body.appendChild(el);
+  });
+</script>
+
+<script>
+  // Hair colors
+  const hairColors = [
+    { name: 'ורוד', color: '#FF69B4', light: '#FFB6D9' },
+    { name: 'אדום', color: '#FF4444', light: '#FF8888' },
+    { name: 'כתום', color: '#FF8C00', light: '#FFB84D' },
+    { name: 'צהוב', color: '#FFD700', light: '#FFE966' },
+    { name: 'ירוק', color: '#32CD32', light: '#7FE87F' },
+    { name: 'תכלת', color: '#00BFFF', light: '#66D9FF' },
+    { name: 'כחול', color: '#4169E1', light: '#8DA6F0' },
+    { name: 'סגול', color: '#9B59B6', light: '#C39BD3' },
+    { name: 'חום', color: '#8B4513', light: '#B87333' },
+    { name: 'שחור', color: '#2C2C2C', light: '#555555' },
+    { name: 'בלונד', color: '#F0D58C', light: '#F7E8B5' },
+    { name: 'קשת', color: 'linear-gradient(180deg, #FF69B4, #FF8C00, #FFD700, #32CD32, #00BFFF, #9B59B6)', light: '#FFB6D9', isGradient: true },
+  ];
+
+  let selectedColor = hairColors[0];
+  let hairStrips = [];
+  let headAngle = 0;
+  let headVelocity = 0;
+  let isDragging = false;
+  let lastX = 0;
+  let animationId = null;
+
+  const headGroup = document.getElementById('headGroup');
+  const scalp = document.getElementById('scalp');
+  const colorsRow = document.getElementById('colorsRow');
+  const lengthSlider = document.getElementById('lengthSlider');
+  const mouth = document.getElementById('mouth');
+  const pupilLeft = document.getElementById('pupilLeft');
+  const pupilRight = document.getElementById('pupilRight');
+
+  // Build color buttons
+  hairColors.forEach((c, i) => {
+    const btn = document.createElement('div');
+    btn.className = 'color-btn' + (i === 0 ? ' selected' : '');
+    if (c.isGradient) {
+      btn.style.background = c.color;
+    } else {
+      btn.style.background = c.color;
+    }
+    btn.title = c.name;
+    btn.onclick = () => {
+      document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedColor = c;
+    };
+    colorsRow.appendChild(btn);
+  });
+
+  // Add hair strip on scalp click
+  scalp.addEventListener('click', (e) => {
+    e.stopPropagation();
+    addHairStrip(e);
+  });
+
+  // Also allow clicking on top of head
+  document.getElementById('head').addEventListener('click', (e) => {
+    const rect = e.target.getBoundingClientRect();
+    const relY = e.clientY - rect.top;
+    if (relY < 30) {
+      addHairStrip(e);
+    }
+  });
+
+  function addHairStrip(e) {
+    const headEl = document.getElementById('head');
+    const headRect = headEl.getBoundingClientRect();
+    const headCenterX = headRect.left + headRect.width / 2;
+
+    // Random position along the top of the head
+    const offsetX = (Math.random() - 0.5) * 80;
+    const length = parseInt(lengthSlider.value) + Math.random() * 30 - 15;
+    const width = 8 + Math.random() * 8;
+
+    const strip = document.createElement('div');
+    strip.className = 'hair-strip';
+    strip.style.width = width + 'px';
+    strip.style.height = length + 'px';
+
+    if (selectedColor.isGradient) {
+      strip.style.background = selectedColor.color;
+    } else {
+      // Slight color variation
+      strip.style.background = selectedColor.color;
+      strip.style.opacity = 0.85 + Math.random() * 0.15;
+    }
+
+    // Position on the head crown
+    strip.style.left = `calc(50% + ${offsetX}px - ${width/2}px)`;
+    strip.style.top = '5px';
+
+    // Slight natural curl/wave
+    const naturalCurl = (Math.random() - 0.5) * 8;
+
+    // Append to the head element so strips sit on the scalp
+    document.getElementById('head').appendChild(strip);
+
+    const stripData = {
+      element: strip,
+      angle: naturalCurl,
+      velocity: 0,
+      naturalAngle: naturalCurl,
+      length: length,
+      offsetX: offsetX,
+      damping: 0.92 + Math.random() * 0.05,
+      stiffness: 0.02 + Math.random() * 0.02,
+    };
+    hairStrips.push(stripData);
+
+    // Confetti burst
+    spawnConfetti(e.clientX || headCenterX, e.clientY || headRect.top);
+
+    // Sound-like visual feedback
+    strip.style.transform = `rotate(${naturalCurl}deg) scaleY(0)`;
+    strip.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
+    requestAnimationFrame(() => {
+      strip.style.transform = `rotate(${naturalCurl}deg) scaleY(1)`;
+      setTimeout(() => {
+        strip.style.transition = 'none';
+      }, 400);
+    });
+  }
+
+  function spawnConfetti(x, y) {
+    const colors = ['#FF69B4', '#FFD700', '#00BFFF', '#FF8C00', '#32CD32', '#9B59B6'];
+    for (let i = 0; i < 8; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.left = x + 'px';
+      c.style.top = y + 'px';
+      c.style.background = colors[Math.floor(Math.random() * colors.length)];
+      document.body.appendChild(c);
+
+      const angle = (Math.PI * 2 * i) / 8 + Math.random() * 0.5;
+      const speed = 40 + Math.random() * 60;
+      const dx = Math.cos(angle) * speed;
+      const dy = Math.sin(angle) * speed - 30;
+
+      c.animate([
+        { transform: 'translate(0,0) scale(1)', opacity: 1 },
+        { transform: `translate(${dx}px, ${dy}px) scale(0)`, opacity: 0 }
+      ], { duration: 600, easing: 'ease-out' });
+
+      setTimeout(() => c.remove(), 600);
+    }
+  }
+
+  // Drag to shake head
+  const scene = document.getElementById('scene');
+
+  scene.addEventListener('mousedown', startDrag);
+  scene.addEventListener('touchstart', startDrag, { passive: false });
+
+  function startDrag(e) {
+    isDragging = true;
+    lastX = e.touches ? e.touches[0].clientX : e.clientX;
+    e.preventDefault();
+  }
+
+  document.addEventListener('mousemove', onDrag);
+  document.addEventListener('touchmove', onDrag, { passive: false });
+
+  function onDrag(e) {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    const dx = x - lastX;
+    headVelocity = dx * 0.8;
+    headAngle += dx * 0.7;
+    headAngle = Math.max(-50, Math.min(50, headAngle));
+    lastX = x;
+    updateHead();
+  }
+
+  document.addEventListener('mouseup', endDrag);
+  document.addEventListener('touchend', endDrag);
+
+  function endDrag() {
+    isDragging = false;
+  }
+
+  // Physics loop
+  function animate() {
+    if (!isDragging) {
+      // Spring back to center
+      const springForce = -headAngle * 0.08;
+      headVelocity += springForce;
+      headVelocity *= 0.88;
+      headAngle += headVelocity;
+
+      if (Math.abs(headAngle) < 0.1 && Math.abs(headVelocity) < 0.05) {
+        headAngle = 0;
+        headVelocity = 0;
+      }
+    }
+
+    // Update hair strips physics
+    hairStrips.forEach(strip => {
+      // Hair swings opposite to head horizontal movement
+      const targetAngle = strip.naturalAngle - headVelocity * (1.2 + strip.length / 150);
+      
+      // Inertia from head acceleration
+      const headAccel = headVelocity * 3;
+
+      // Spring toward target
+      strip.velocity += (targetAngle - strip.angle) * strip.stiffness;
+      strip.velocity -= headAccel * 0.1;
+
+      // Gravity pulls hair back to center
+      const gravityPull = -strip.angle * 0.015;
+      strip.velocity += gravityPull;
+
+      strip.velocity *= strip.damping;
+      strip.angle += strip.velocity;
+
+      // Clamp
+      strip.angle = Math.max(-70, Math.min(70, strip.angle));
+
+      strip.element.style.transform = `rotate(${strip.angle}deg)`;
+    });
+
+    updateHead();
+    animationId = requestAnimationFrame(animate);
+  }
+
+  function updateHead() {
+    headGroup.style.transform = `translateX(${headAngle}px)`;
+
+    // Mouth reaction
+    if (Math.abs(headVelocity) > 3) {
+      mouth.style.height = '14px';
+      mouth.style.borderRadius = '50%';
+      mouth.style.border = '3px solid #E88090';
+      mouth.style.borderTop = '3px solid #E88090';
+      mouth.style.width = '18px';
+    } else {
+      mouth.style.height = '10px';
+      mouth.style.borderRadius = '0 0 50% 50%';
+      mouth.style.border = 'none';
+      mouth.style.borderBottom = '3px solid #E88090';
+      mouth.style.width = '22px';
+    }
+
+    // Eyes follow direction
+    const eyeOffset = Math.max(-3, Math.min(3, headAngle * 0.15));
+    pupilLeft.style.transform = `translateX(calc(-50% + ${eyeOffset}px))`;
+    pupilRight.style.transform = `translateX(calc(-50% + ${eyeOffset}px))`;
+  }
+
+  function clearHair() {
+    if (hairStrips.length === 0) {
+      alert('אין רצועות שיער למחיקה!');
+      return;
+    }
+    alert('כל השיער נמחק!');
+    hairStrips.forEach(s => {
+      s.element.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+      s.element.style.transform = `rotate(${s.angle}deg) scaleY(0)`;
+      s.element.style.opacity = '0';
+      setTimeout(() => s.element.remove(), 300);
+    });
+    hairStrips = [];
+  }
+
+  function shakeHead() {
+    // Auto shake animation
+    let shakeTime = 0;
+    const shakeInterval = setInterval(() => {
+      headVelocity = Math.sin(shakeTime * 0.3) * 15;
+      headAngle += headVelocity * 0.3;
+      headAngle = Math.max(-35, Math.min(35, headAngle));
+      shakeTime++;
+      if (shakeTime > 40) {
+        clearInterval(shakeInterval);
+      }
+    }, 30);
+  }
+
+  // Start animation loop
+  animate();
+
+  // Eye blink
+  setInterval(() => {
+    const eyes = document.querySelectorAll('.eye');
+    eyes.forEach(eye => {
+      eye.style.transition = 'height 0.1s ease';
+      eye.style.height = '4px';
+      setTimeout(() => {
+        eye.style.height = '26px';
+      }, 150);
+    });
+  }, 3000 + Math.random() * 2000);
+</script>
+
+</body>
+</html>
